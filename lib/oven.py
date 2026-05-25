@@ -36,10 +36,18 @@ class Output(object):
 
     def load_libs(self):
         try:
+            Relay1Pin = 14
+            Relay2Pin = 15
+            Relay3Pin = 3
+            Relay4Pin = 4
             import RPi.GPIO as GPIO
             GPIO.setmode(GPIO.BCM)
             GPIO.setwarnings(False)
             GPIO.setup(config.gpio_heat, GPIO.OUT)
+            GPIO.setup(Relay1Pin, GPIO.OUT)
+            GPIO.setup(Relay2Pin, GPIO.OUT)
+            GPIO.setup(Relay3Pin, GPIO.OUT)
+            GPIO.setup(Relay4Pin, GPIO.OUT)
             self.active = True
             self.GPIO = GPIO
         except:
@@ -48,12 +56,20 @@ class Output(object):
             self.active = False
 
     def heat(self,sleepfor):
+        self.GPIO.output(14, self.GPIO.HIGH)
+        self.GPIO.output(15, self.GPIO.HIGH)
+        self.GPIO.output(3, self.GPIO.HIGH)
+        self.GPIO.output(4, self.GPIO.HIGH)
         self.GPIO.output(config.gpio_heat, self.GPIO.HIGH)
         time.sleep(sleepfor)
 
     def cool(self,sleepfor):
         '''no active cooling, so sleep'''
         self.GPIO.output(config.gpio_heat, self.GPIO.LOW)
+        self.GPIO.output(14, self.GPIO.LOW)
+        self.GPIO.output(15, self.GPIO.LOW)
+        self.GPIO.output(3, self.GPIO.LOW)
+        self.GPIO.output(4, self.GPIO.LOW)
         time.sleep(sleepfor)
 
 # FIX - Board class needs to be completely removed
@@ -132,16 +148,13 @@ class TempSensorReal(TempSensor):
 
         if config.max31856:
             log.info("init MAX31856")
-            from max31856 import MAX31856
-            software_spi = { 'cs': config.gpio_sensor_cs,
-                             'clk': config.gpio_sensor_clock,
-                             'do': config.gpio_sensor_data,
-                             'di': config.gpio_sensor_di }
-            self.thermocouple = MAX31856(tc_type=config.thermocouple_type,
-                                         software_spi = software_spi,
-                                         units = config.temp_scale,
-                                         ac_freq_50hz = config.ac_freq_50hz,
+            from max31856 import max31856
+            self.thermocouple = max31856(csPin=config.gpio_sensor_cs,
+                                         misoPin = config.gpio_sensor_data,
+                                         mosiPin = config.gpio_sensor_di,
+                                         clkPin = config.gpio_sensor_clock,
                                          )
+            self.thermocouple.setupGPIO()
 
     def run(self):
         '''use a moving average of config.temperature_average_samples across the time_step'''
@@ -156,12 +169,12 @@ class TempSensorReal(TempSensor):
                 self.bad_count = 0
                 self.ok_count = 0
                 self.bad_stamp = time.time()
-
-            temp = self.thermocouple.get()
-            self.noConnection = self.thermocouple.noConnection
-            self.shortToGround = self.thermocouple.shortToGround
-            self.shortToVCC = self.thermocouple.shortToVCC
-            self.unknownError = self.thermocouple.unknownError
+            tempC = self.thermocouple.readThermocoupleTemp()
+            temp = (tempC * 9.0/5.0) + 32
+            self.noConnection = False
+            self.shortToGround = False
+            self.shortToVCC = False
+            self.unknownError = False
 
             is_bad_value = self.noConnection | self.unknownError
             if not config.ignore_tc_short_errors:

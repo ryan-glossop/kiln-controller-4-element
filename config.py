@@ -2,7 +2,7 @@ import logging
 import os
 
 # uncomment this if using MAX-31856
-#from lib.max31856 import MAX31856
+from lib.max31856 import max31856
 
 ########################################################################
 #
@@ -22,8 +22,8 @@ listening_port = 8081
 # to produce the actual cost during a run. My kiln has three
 # elements that when my switches are set to high, consume 9460 watts.
 
-kwh_rate        = 0.1319  # cost per kilowatt hour per currency_type to calculate cost to run job
-kw_elements     = 9.460 # if the kiln elements are on, the wattage in kilowatts
+kwh_rate        = 0.24  # cost per kilowatt hour per currency_type to calculate cost to run job
+kw_elements     = 5.520 # if the kiln elements are on, the wattage in kilowatts
 currency_type   = "$"   # Currency Symbol to show when calculating cost to run job
 
 ########################################################################
@@ -41,16 +41,15 @@ gpio_heat = 23  # Switches zero-cross solid-state-relay
 ### Thermocouple Adapter selection:
 #   max31855 - bitbang SPI interface
 #   max31856 - bitbang SPI interface. must specify thermocouple_type.
-max31855 = 1
-max31856 = 0
+max31855 = 0
+max31856 = 1
 # see lib/max31856.py for other thermocouple_type, only applies to max31856
 # uncomment this if using MAX-31856
-#thermocouple_type = MAX31856.MAX31856_S_TYPE
 
 ### Thermocouple Connection (using bitbang interfaces)
-gpio_sensor_cs = 27
-gpio_sensor_clock = 22
-gpio_sensor_data = 17
+gpio_sensor_cs = 25
+gpio_sensor_clock = 11
+gpio_sensor_data = 9
 gpio_sensor_di = 10 # only used with max31856
 
 ########################################################################
@@ -60,7 +59,7 @@ gpio_sensor_di = 10 # only used with max31856
 # Every N seconds a decision is made about switching the relay[s] 
 # on & off and for how long. The thermocouple is read 
 # temperature_average_samples times during and the average value is used.
-sensor_time_wait = 2
+sensor_time_wait = 70
 
 
 ########################################################################
@@ -87,7 +86,7 @@ stop_integral_windup = True
 ########################################################################
 #
 #   Simulation parameters
-simulate = True
+simulate = False
 sim_t_env      = 60.0   # deg C
 sim_c_heat     = 500.0  # J/K  heat capacity of heat element
 sim_c_oven     = 5000.0 # J/K  heat capacity of oven
@@ -119,7 +118,7 @@ emergency_shutoff_temp = 2264 #cone 7
 # If the current temperature is outside the pid control window,
 # delay the schedule until it does back inside. This allows for heating
 # and cooling as fast as possible and not continuing until temp is reached.
-kiln_must_catch_up = True
+kiln_must_catch_up = False
 
 # This setting is required. 
 # This setting defines the window within which PID control occurs.
@@ -128,7 +127,7 @@ kiln_must_catch_up = True
 # or 100% off because the kiln is too hot. No integral builds up
 # outside the window. The bigger you make the window, the more
 # integral you will accumulate. This should be a positive integer.
-pid_control_window = 5 #degrees 
+pid_control_window = 30 #degrees 
 
 # thermocouple offset
 # If you put your thermocouple in ice water and it reads 36F, you can

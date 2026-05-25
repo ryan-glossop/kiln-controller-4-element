@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/home/ryan/kiln-controller/venv/bin/python
 
 import os
 import sys
