@@ -1,0 +1,28 @@
+{
+    "cost": 0.041952000000000024,
+    "runtime": 7910.742078,
+    "temperature": 0,
+    "target": 528.3325470420561,
+    "state": "RUNNING",
+    "heat": 1.0,
+    "totaltime": 32314,
+    "kwh_rate": 0.24,
+    "currency_type": "$",
+    "profile": "cone-01-long-glaze",
+    "pidstats": {
+        "time": 1779745925.0,
+        "timeDelta": 70.003533,
+        "setpoint": 528.3325470420561,
+        "ispoint": 0,
+        "err": 528.3325470420561,
+        "errDelta": 0,
+        "p": 13208.313676051404,
+        "i": 0,
+        "d": 0,
+        "kp": 25,
+        "ki": 10,
+        "kd": 200,
+        "pid": 0,
+        "out": 1
+    }
+}
