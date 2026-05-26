@@ -22,9 +22,15 @@ if len(sys.argv) < 2:
         sys.exit(1)
 poll_interval_seconds = float(sys.argv[1])
 
+MONGO_URI = 'mongodb://192.168.0.178:27017'
+
+def connect_mongo():
+        client = pymongo.MongoClient(MONGO_URI, serverSelectionTimeoutMS=2000)
+        client.admin.command('ping')
+        return client, client.kiln.temp
+
 try:
-        client = pymongo.MongoClient('mongodb://192.168.0.178:27017')
-        col_temperature = client.kiln.temp
+        client, col_temperature = connect_mongo()
         mongo=True
         print("connected to mongo at 192.168.0.178:27017")
 except Exception as e:
@@ -43,12 +49,15 @@ while True:
                 temp = (tempC * 9.0/5.0) + 32
                 timestamp = datetime.datetime.now()
                 print(str(timestamp) + " - @ temp - " + str(temp))
-                if(mongo):
-                        col_temperature.insert_one({'temp':temp,'time':timestamp})
+                if mongo:
+                        try:
+                                col_temperature.insert_one({'temp':temp,'time':timestamp})
+                        except Exception as e:
+                                mongo=False
+                                print("{} - mongo insert failed ({}: {}) - will retry connection".format(timestamp, type(e).__name__, e))
                 else:
                         try:
-                                client = pymongo.MongoClient('mongodb://192.168.0.178:27017')
-                                col_temperature = client.kiln.temp
+                                client, col_temperature = connect_mongo()
                                 mongo=True
                                 print("reconnected to mongo")
                         except Exception as e:
@@ -59,7 +68,7 @@ while True:
                 raise
         except Exception as e:
                 timestamp = datetime.datetime.now()
-                print("{} - error reading/logging temp ({}: {})".format(timestamp, type(e).__name__, e))
+                print("{} - error reading thermocouple ({}: {})".format(timestamp, type(e).__name__, e))
                 traceback.print_exc()
                 time.sleep(poll_interval_seconds)
 thermocouple.cleanup()
