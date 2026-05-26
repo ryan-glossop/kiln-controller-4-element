@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ping -n 1 KilnController)",
+      "Bash(ping -n 1 kiln)",
+      "Bash(ping -n 1 kiln.local)",
+      "Bash(ping -n 1 KilnController.local)",
+      "Bash(arp -a)",
+      "Bash(ipconfig)",
+      "Bash(ping -n 2 kilncontroller.local)",
+      "Bash(ping -n 2 kiln.local)",
+      "Bash(ping -n 2 raspberrypi.local)",
+      "Bash(wsl -- bash -c 'echo HOME=$HOME; ls ~/ 2>&1 | head -20; which ssh')"
+    ]
+  }
+}

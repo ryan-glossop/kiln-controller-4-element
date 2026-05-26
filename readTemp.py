@@ -8,6 +8,7 @@ import pymongo
 import pprint
 import time
 import datetime
+import traceback
 import busio
 
 #thermocouple_type = adafruit_max31856.MAX31856_K_TYPE
@@ -22,11 +23,13 @@ if len(sys.argv) < 2:
 poll_interval_seconds = float(sys.argv[1])
 
 try:
-        client = pymongo.MongoClient('mongodb://192.168.0.111:27017')
+        client = pymongo.MongoClient('mongodb://192.168.0.178:27017')
         col_temperature = client.kiln.temp
         mongo=True
-except:
+        print("connected to mongo at 192.168.0.178:27017")
+except Exception as e:
         mongo=False
+        print("could not connect to mongo at 192.168.0.178:27017 ({}: {}) - temps will not be saved".format(type(e).__name__, e))
 
 #clear the DB:
 #col_temperature.delete_many({})
@@ -44,14 +47,19 @@ while True:
                         col_temperature.insert_one({'temp':temp,'time':timestamp})
                 else:
                         try:
-                                client = pymongo.MongoClient('mongodb://192.168.0.111:27017')
+                                client = pymongo.MongoClient('mongodb://192.168.0.178:27017')
                                 col_temperature = client.kiln.temp
                                 mongo=True
-                        except:
+                                print("reconnected to mongo")
+                        except Exception as e:
                                 mongo=False
+                                print("mongo reconnect failed ({}: {})".format(type(e).__name__, e))
                 time.sleep(poll_interval_seconds)
         except KeyboardInterrupt:
                 raise
-        except:
-                print("error!")
+        except Exception as e:
+                timestamp = datetime.datetime.now()
+                print("{} - error reading/logging temp ({}: {})".format(timestamp, type(e).__name__, e))
+                traceback.print_exc()
+                time.sleep(poll_interval_seconds)
 thermocouple.cleanup()
